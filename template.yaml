@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-flask
+
+  Sample SAM Template for lambda-flask
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+Resources:
+  FlaskrApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      BinaryMediaTypes:
+        - image/x-icon
+        - image/png
+        - image/jpeg
+        - audio/mpeg
+        - application/octet-stream
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  FlaskrFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: flaskr/
+      Handler: lambda_handler.app
+      Runtime: python3.13
+      Architectures:
+      - x86_64
+      Events:
+        RootPath:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FlaskrApi # Link to the explicitly defined API
+            Path: /
+            Method: ANY
+        ProxyPath:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FlaskrApi # Link to the explicitly defined API
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  FlaskrApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value: !Sub "https://${FlaskrApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  FlaskrFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt FlaskrFunction.Arn
+  FlaskrFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value: !GetAtt FlaskrFunctionRole.Arn
