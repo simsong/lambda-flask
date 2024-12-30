@@ -7,12 +7,14 @@ lambda_handler.py (this file)
 
 import os
 import logging
-
 from apig_wsgi import make_lambda_handler
+from flaskr.flaskr import app
+
+lambda_handler = make_lambda_handler(app,binary_support=True)
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    format="%(asctime)s [%(levelname)s] %(message)s "
 )
 
 logger = logging.getLogger(__name__)
@@ -27,6 +29,3 @@ try:
     dump_files(os.environ['DEBUG_DUMP_FILES_ROOT'])
 except KeyError:
     pass
-
-from flaskr.flaskr import app
-lambda_handler = make_lambda_handler(app)

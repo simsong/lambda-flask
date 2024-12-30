@@ -1,2 +1,1 @@
-from .flaskr import app, init_db
-
+from .flaskr import app

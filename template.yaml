@@ -1,17 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  lambda-flask
+  lambda-flask -   Sample SAM Template for lambda-flask with AWS Lambda Powertools
 
-  Sample SAM Template for lambda-flask
-
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
     Tracing: Active
   Api:
     TracingEnabled: true
+
 Resources:
   FlaskrApi:
     Type: AWS::Serverless::Api
@@ -27,36 +25,41 @@ Resources:
         AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ./swagger.yaml
 
   FlaskrFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: flaskr/
-      Handler: lambda_handler.app
+      Handler: lambda_handler.lambda_handler
       Runtime: python3.13
       Architectures:
-      - x86_64
+        - x86_64
       Events:
         RootPath:
           Type: Api
           Properties:
-            RestApiId: !Ref FlaskrApi # Link to the explicitly defined API
+            RestApiId: !Ref FlaskrApi
             Path: /
             Method: ANY
         ProxyPath:
           Type: Api
           Properties:
-            RestApiId: !Ref FlaskrApi # Link to the explicitly defined API
+            RestApiId: !Ref FlaskrApi
             Path: /{proxy+}
             Method: ANY
 
 Outputs:
   FlaskrApi:
-    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Description: API Gateway endpoint URL for Prod stage
     Value: !Sub "https://${FlaskrApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   FlaskrFunction:
-    Description: Hello World Lambda Function ARN
+    Description: Lambda Function ARN
     Value: !GetAtt FlaskrFunction.Arn
   FlaskrFunctionIamRole:
-    Description: Implicit IAM Role created for Hello World function
+    Description: Implicit IAM Role created for the function
     Value: !GetAtt FlaskrFunctionRole.Arn
